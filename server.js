@@ -1,8 +1,12 @@
 import { WebSocketServer } from 'ws';
 
 const wss = new WebSocketServer({ port: 8080 });
-var c=1;
-wss.on('connection', function connection(ws) {
+
+
+
+wss.on('connection', function connection(ws,req) {
+const ip = req.socket.remoteAddress;
+    console.log(req);
   ws.on('error', console.error);
 
   ws.on('message', function message(data) {
@@ -12,6 +16,7 @@ wss.on('connection', function connection(ws) {
   
       
      wss.clients.forEach(function each(client) {
+
       if (client !== ws && client.readyState === WebSocket.OPEN) {
         client.send(data);
       }
@@ -29,13 +34,44 @@ for optimization use a map to O(1) lookup of client for ip addreess ! yaaaaaa i 
 justpure docs! though i see the examples in the docs for this works but its okay , if not given then i might be reading the ip method anyway would 
 took me a lot time thouhg to get theerer as i have to ok anyway! great!
 
-import { WebSocketServer } from 'ws';
 
-const wss = new WebSocketServer({ port: 8080 });
+i might will need proccess id of client! not the ip adddress
+so port address of clients how can i get that?? 
+can i assign a id to the connected socket??
+hmm for this i might will have to see what the client object is containing in server as in the foreach loop!
+so       _connectionKey: '6::::8080', might be a potential identifier !
 
-wss.on('connection', function connection(ws, req) {
-  const ip = req.socket.remoteAddress;
+so i can use port number     _peername: { address: '::1', family: 'IPv6', port: 52418 },
+ 
+ map port number with user id! 
+ but port id can change! as connection lost once??? let's verify!
+    
 
-  ws.on('error', console.error);
-});
+yaaa port address change everytime so i cant identify based on that
+
+now i got another idea! 
+which is at server side i will send client id from client itself! and the fact is that client will get client id from a rest API call!
+and then send that ip address when trying to make connection ! 
+
+actually i have to validate the client before it get's connected to me at all!
+so i will do that?
+    -- can i send a msg with the connecton request? 
+        ++ if not so then i can first let it connect and then wait for a flag to be true 
+            the flag is marked true if the socket connected with port address x is verified with the id and password 
+                so id and password were sent as a first msg and response would be to let the client know that we dont need this anymore! you are verifed!
+        ++ every new port have to verify it first else no msg will be forwarded!! 
+        -- this is not a good design at all! 
+        verification at the connection time is correct but for that ws should provide a way to inject id password from the client or a hash frpm the client
+        to the server via ws! 
+        ++ another safe way would be to like pre port verification!
+        -- means before the connection is established i will send A RESTapi call and stat that a client with ip addrs x and port add y will connect sooooooonnnn
+             so we can assign it a expiry time and store this promise in a arrray in the server side 
+             and when a connectoin is requested then check the ip and port and the expriy time if all the conditions were met then let the connection happend
+             and store this port and ip with the user name earlier given by the rest api call!
+        so there are many hacks and also workable !
+        but the most convieninet one was to send a msg or payload with a hash at the connection time itself
+        so that no malfuntioning at all allowed
+        
+        so task 1. get to know about websocket! websocketserver see how client can send msg having a hash or id and server can see it verify it and so on!
+        
 */

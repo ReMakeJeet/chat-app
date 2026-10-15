@@ -5,7 +5,9 @@ import readline from 'node:readline';
 
 
 
-const ws = new WebSocket('ws://localhost:8080/');
+const ws = new WebSocket('ws://localhost:8080/'); // here i want to pass a id as a path variable see 8080/id/1 and for security i will send a password too 
+// so const ws = new WebSocket('ws://localhost:8080/id/jeet_solanki/password/#@Jeet2006');  so somethig like this! 
+// because connection made by client should be validated separatly every time by the server as if not then if by lick someone got the ws url he/she can make connection!
 
 ws.on('error', console.error);
 
