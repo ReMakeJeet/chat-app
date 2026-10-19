@@ -3,12 +3,15 @@ import { WebSocketServer } from 'ws';
 const wss = new WebSocketServer({ port: 8080 });
 
 
+wss.on('connection', function connection(ws) {
 
-wss.on('connection', function connection(ws,req) {
-const ip = req.socket.remoteAddress;
-    console.log(req);
+    
+
   ws.on('error', console.error);
 
+    
+ 
+ 
   ws.on('message', function message(data) {
 
     console.log('received: %s', data);
@@ -28,6 +31,17 @@ const ip = req.socket.remoteAddress;
 
 
 /*
+ws.send(data);
+const mobile_number_and_client = new Map();
+
+const mobile_no = get_mobile_no_from_url(url);
+
+function get_mobile_no_from_url(url){
+// extract mobile no passed in by client!
+return mobile_no;
+}
+mobile_number_and_client.set(mobile_no,ws);
+
 use this to get ip and then use  this to send msg to that ip only! so what we can do is we can loop and get the ip from clients.froeach and
 then if ip found then send to that client only 
 for optimization use a map to O(1) lookup of client for ip addreess ! yaaaaaa i did it, i made the chat app finally without ai or tutorial or book
@@ -74,4 +88,25 @@ so i will do that?
         
         so task 1. get to know about websocket! websocketserver see how client can send msg having a hash or id and server can see it verify it and so on!
         
+        
+        
+        SO ANYWAY I AM GOING WITH FIRST CONNECTION AND THEN USE ws.send() to verify and if not verifed and sending msgs then server would not forward them!
+        the thing is no body will know our internal api end point so no hacking!
+        also later on i will make ws url's on the fly 
+        and i am ALSO NOT DEPENDING ON EXISTING FUNTIONS TO HELP ME OUT TO GET THE TOKEN FROM THE URL 
+        AND I KNOW I  CAN SEE THE EXACT URL USED BY THE CLIENT AS: ws.url so everything is clear
+        i know I CAN USE UPGRDAE CONNECTION BUT ITS NOT SUPPTOETED IN HTTP 2 NAD 3 SO NOT GOING WITH THAT YET! THATS EASY THOUGH! 
+        
 */
+
+
+// actually i d/ont need port address what i can do is
+// just use id in url and store clients in a map with id!
+// and whenever one client x wants to send msg to y then x gives y's id!
+// how x knows y's id? because x is y's friend? or x knows y's public id??
+// like mobile number? yaa! mobile no is public id!
+
+// now the q is how i will get the url or what ever passed by client?
+// if ws.send() creates an event message that server listens then 
+// cana i make another method that generates an event from client?
+// like so ws.on('connection/id') and then hte q is how i will extract the id?
