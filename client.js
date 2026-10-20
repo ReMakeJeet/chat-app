@@ -2,24 +2,50 @@
 
 
 // ok
+
+var flag = 0;
+var sessionid=0;
+
 const ws = new WebSocket('ws://localhost:8080/'); 
+
     ws.addEventListener('error', console.error);
 
     ws.addEventListener('open', function open() {
-      ws.send('ok 200');
+    const jsondata = {
+        "req":0,
+        "msg" : "hey please assign the sid"
+    }
+      ws.send(JSON.stringify(jsondata)); // req:0 means assign id
     });
 
     ws.addEventListener('message', async (event) => {
-    var data = await event.data.text();
-        resp_para.innerHTML = `Dara recieved: ${data}`;
+    var data = await event.data;
+    console.log(JSON.stringify(data));
+    const obj = JSON.parse(data);
+        if(flag==0){
+            sessionid = obj.sid;
+            flag=1;
+            resp_para.innerHTML = `session id recieved: ${obj.sid} with msg: ${obj.msg}`;
+        }else{
+            resp_para.innerHTML = `Dara recieved: from: ${obj.sender_id} with msg: ${obj.msg}`;
+        }
     });
 
 function send_msg() {
-    const msg = prompt("Enter msg ");
-    ws.send(msg);
-    ack_para.innerHTML = `Msg sent: ${msg}`;
-     
-
+    if(!sessionid){
+        ack_para.innerHTML = `wait till server gives session id then chat`;
+        
+    }else{
+        const msg = prompt("Enter msg ");
+        const recieverid = prompt("enter reciver id ");
+        const d = {
+            "sender_id": sessionid,
+            "reciever_id":recieverid, 
+            "messages": msg
+        }
+        ws.send(JSON.stringify(d));
+        ack_para.innerHTML = `Msg sent: ${msg} to ${recieverid}`;
+    }
   }
 
     const button = document.querySelector("button");

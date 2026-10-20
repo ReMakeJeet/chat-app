@@ -2,33 +2,54 @@ import { WebSocketServer } from 'ws';
 
 const wss = new WebSocketServer({ port: 8080 });
 
+const arr = [];
 
+var indx = 1;
 wss.on('connection', function connection(ws) {
-
-    
 
   ws.on('error', console.error);
 
-    
- 
- 
   ws.on('message', function message(data) {
+    
+    //console.log('received: %s', JSON.stringify(data));
+    // lets send to the desired reciver now not broadcasting! hmm yaa gotch you
+    const obj = JSON.parse(data);
 
-    console.log('received: %s', data);
-    // lets broadcast the msg first and then add funtionaly for dm
-  
-      
-     wss.clients.forEach(function each(client) {
+        if('req' in obj){
+            // so first req for id 
+            arr[indx] = ws;
+            
+            const client = arr[indx];
 
-      if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(data);
-      }
-  });
+
+            const ms = "hello client gotch you here is your id above";
+
+            const resp ={
+                "sid": indx,
+                "msg": ms
+            }
+
+            client.send(JSON.stringify(resp));
+
+            indx = indx+1;
+        }else{
+            const sender_id = obj.sender_id;  
+            const reciever_id = obj.reciever_id;
+            const msg = obj.messages;
+            
+            const resp = {
+                "sender_id": sender_id,
+                "msg": msg
+            }
+            const reciever = arr[reciever_id];
+            reciever.send(JSON.stringify(resp));
+            
+            console.log("sent msg-----"); 
+        }    
   });
 
 });
  
-
 
 /*
 ws.send(data);
