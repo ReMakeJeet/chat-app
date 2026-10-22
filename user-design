@@ -1,0 +1,99 @@
+class user{
+	int id;
+	string username;
+	string password;// hash it and store the hash
+	string name;
+	var map_contacts;//NEW* key = name, value = id of user obj //OLD* a map key= id integer of user and value as that user object
+	var map_groups; //NEW* key = name of grp and value = grpid //OLD* key = grpid int id of grp and value = grp object
+	// two ways to do this! 1st: //NEW* don't store objects store name as keys for lookup on searching and value as id and use id to get obj from global storage.
+						//OLD* use instace objects for all this map's
+	// 2nd: use lookup means dont put this maps to every user and instead make a middle-map which stores:
+		// users in groups so map_user_and_grps , key = grp_id , array of users in this grp so array of integer id.
+	// no the first one is better 
+	
+		
+	// NOTE: grp admins should get notfied whenever a high level of event occured means: user got left or removed my admins!
+	// this should be seen in the admin side of chat pannel 
+		// admins-only chat is also possible in a grp where many members are. 
+	// so every messsage event has a ring(previlage level) representing who can see the message!
+	// favorait contacts, grps, channels, paid grps, subscription of paid grp summary.
+	
+}
+**++ importent feature is hmm images and vedio seen only once feature!
+** un-downloadable of content feaure or just_seen_on_app feature.
+
+
+so create this objs and add them to the main list as our db
+db should be map or arr? 
+if map then easy to find!
+so use map key= id? id as username?? or id as int index?? 
+i think i can have another map of id int and value as username string 
+	-- why so? 
+		+= because this might will help in faster acccess??
+		++= most importatly usernames can change every time and hence we might need to change the key of our map so its important
+		to use a immutable means const id integer from the user class to be the key instead od id!
+		but user enters username and password so how the map will work???
+			hmm this is critical now!
+			
+		-- but i think we can use username as keys because chnaging the username is not frequent too. so not that much means its constant time commplexity
+so finnaly the design dicision for database(map ) key is concluded to use username and update the key whenever username get's updated!	
+	== so to do that now read docs to get a methodn or technique to update keys of maps.
+	
+	
+	
+NOW Gropus:
+	the design for this is pretty similar:
+		+- a class grp containing:
+			+ grpid integer
+			+ ARRAY grp_admin 
+			+ arr grp_members // array of usernames , then use this username to get the user from the database_map
+	****	A critical problem is here!!!!!!
+		-- that whenever username get's changed it will require to be changed at many places
+		-- as in each gpr object too!
+		-- so map is important here!
+		-- use maps and use integer id in reference ALL-ARROUND THE APP except first entry-point that is when login!
+		
+		
+ALLRIGHT HM SYSTEM IS DESIGNED. DATE: 22 Oct 2026 Jeet Solanki.
+___________________________________________________________________
+
+NOW design the interfaces btw this classes and database_map and other maps etc so that the interaction and data communication is easy and scalable
+AND ROBUST...
+
+Do i need moduler architecture ?? for now i dont think so! and i also may will not able to build it modular because
+i dont have enough data about what's going on
+so first monolothic and single-file is the path.
+
+
+_____________________
+What left in design??
++ identifiers name convention and using good and correct name for classes and objects and attributes and methond names etc.
++ api_design: hmm i need correct routes/endpoints. and document the specification of api's 
+	-- its input parrameters or arguments and so on! 
+++ handle errors try catch.
+
++ input validation.
++ oops + op principles + design pattern.
++++ don't forget to make client side javascript to be not undersntandable to normal users.
++ are we needing static methods or properties.
+
++ design id generation, 
+
+++ IMP: have a map of session_token_id and original id of user to prevent hacking of user id from client side because i will store id in cokkies and send it in every api 
+	so it can be hacked! so use a session and in each session give it a token with expiry time and refresh token too!!(don't worry jeet it will not cost too much :))
+		BUT token can also get hacked? then what? 
+			then the token is hacked for a limited time!!!  but it does't sounds great... but its standard and an initiative so works. good jeet.
+++ 
+
+___________________________________OK SO I THINK ENOUGH FOR NOW Execute this now____________________________________________________________
+
+
+ALLRIHGT
+Now impl the oouter or global part means database_maps and arrays etc it's 16:52 pm oct 22.. i did implemented user class a well.
+//TODO:
+	- fuzzy search
+	- return list of matching firsnames etc.
+	- hashing logic for paswoord
+	- id generation in standard way.
+	- data time
+	
