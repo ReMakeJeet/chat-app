@@ -56,6 +56,7 @@ NOW Gropus:
 		
 ALLRIGHT HM SYSTEM IS DESIGNED. DATE: 22 Oct 2026 Jeet Solanki.
 ___________________________________________________________________
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 NOW design the interfaces btw this classes and database_map and other maps etc so that the interaction and data communication is easy and scalable
 AND ROBUST...
@@ -66,6 +67,8 @@ so first monolothic and single-file is the path.
 
 
 _____________________
+!!!!!!!!!!!!!!!!!!!!!
+
 What left in design??
 + identifiers name convention and using good and correct name for classes and objects and attributes and methond names etc.
 + api_design: hmm i need correct routes/endpoints. and document the specification of api's 
@@ -86,7 +89,7 @@ What left in design??
 ++ 
 
 ___________________________________OK SO I THINK ENOUGH FOR NOW Execute this now____________________________________________________________
-
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ALLRIHGT
 Now impl the oouter or global part means database_maps and arrays etc it's 16:52 pm oct 22.. i did implemented user class a well.
@@ -97,3 +100,60 @@ Now impl the oouter or global part means database_maps and arrays etc it's 16:52
 	- id generation in standard way.
 	- data time
 	
+______________________________________________________________
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Groups and Chat design
+class Group{
+	int id;// should i use gprid or just id?? id will work!
+	map of users; assign value as an obj and that obj contain{ id of user, role, date joined, rtc}
+	gpr discr, name media images etc // TODO get the data structures used for this purpose
+	ARRAY grp_chat; // array of GroupChat id's.
+	
+}
+class PrivateMessage{
+	id, 
+	senderid,
+	recieverid,
+	date,
+	msg,
+}
+class GroupMessage{
+	id,
+	senderid,
+	date,
+	mentions;// TODO Extract them from string of text that user gives in input!! so preproccess the input string!! identify links highlight them etc
+}
+++ Both will have global Database_map: 	GroupMessageDataBase_Map key = group_msg_id and value= group_message_obj {++ or use value object! havving more data in value of map}
+					PrivateMessageDataBase_Map key = private_msg_id, private_msg_object .
+++ Group_obj_DataBase_MAP key= grp_id value= grp_object, User_obj_DataBase_MAP: key = user_id and value = user_object
+
+___________________**OHH MY GOODNESS it's 16:16 pm 23 Oct 2026 i done the DataBases of private chats, grp chats, and groups objects, user objects__________________________
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+Vedio call and normall voice call
+
+class VedioCall{
+	
+}
+class GroupVedioCall{
+	
+}
+class VoiceCall{
+	
+}
+class GroupVoiceCall{
+	
+}
+
+
+++ For each of them we will open different websockets endpoints,
+
+// PROblem each i should add another data structure in users class to hold the chat related to each user 
+++ Contact_Chat_Map key = contact id(user id) value = array of chat ids with this contact chat_id arrays
+	++ now when user opens a contact the app will send a reques to global  data base with contact id
+		and server will proccess the related chat ids: it will fetch that chat(msg)  
+	++ note: this map stores the both side msgs so it becomes chat, means sent by this user and that contact user all goes in here
+
+	
+	
++++++ ** IMP its better to say msgs instead of chat!!
