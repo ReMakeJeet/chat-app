@@ -6,7 +6,7 @@
 var flag = 0;
 var sessionid=0;
 
-const ws = new WebSocket('ws://localhost:8080/'); 
+const ws = new WebSocket('ws://localhost:8080/core'); 
 
     ws.addEventListener('error', console.error);
 
@@ -54,6 +54,8 @@ function send_msg() {
     button.addEventListener("click", send_msg);
     
     
+    
+
 
 
 /*

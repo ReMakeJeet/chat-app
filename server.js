@@ -1,73 +1,74 @@
 import { WebSocketServer } from 'ws';
+import  express  from 'express';
+import  enableWs  from 'express-ws';
+import { User } from './user.js';
+
+const app = express();
+enableWs(app);
+
+
+const arr = [];
+var indx = 1;
+
+/*app.ws('/groupmessage', (ws, req) => {
+// for group chat
+});
+*/
+app.ws('/core', (ws, req) => {
+    
+
+  ws.on('error', console.error);
+
+  ws.on('message', function message(data) {
+    
+    //console.log('received: %s', JSON.stringify(data));
+    // lets send to the desired reciver now not broadcasting! hmm yaa gotch you
+    const obj = JSON.parse(data);
+
+        if('req' in obj){
+            // so first req for id 
+            arr[indx] = ws;
+            
+            const client = arr[indx];
+
+
+            const ms = "hello client gotch you here is your id above";
+
+            const resp ={
+                "sid": indx,
+                "msg": ms
+            }
+
+            client.send(JSON.stringify(resp));
+
+            indx = indx+1;
+        }else{
+            const sender_id = obj.sender_id;  
+            const reciever_id = obj.reciever_id;
+            const msg = obj.messages;
+            
+            const resp = {
+                "sender_id": sender_id,
+                "msg": msg
+            }
+            const reciever = arr[reciever_id];
+            reciever.send(JSON.stringify(resp));
+            
+            console.log("sent msg-----"); 
+        }    
+  });
+    ws.on('close', () => {
+        console.log('WebSocket was closed')
+    })
+})
+
+app.listen(8080)
+
+
 
 
 /*
-    documentaion for class: user
-*/
-class User{
-	firstname;
-	lastname;
-	username;
-	join_date;      // TODO: date when user jooined the app. means created account oh can we make account details separate from User class??
-	#id;
-	#password;      //TODO hash it and store the hash
-	#contacts_map;  // a map key= id integer of user and value as that DON'T Store the objects!! it's redundance of data. use the id of user to get user obj from db.
-	#groups_map;  // a map storing key = grp_name and value as grp_id samea for contacts_map key = user's name, and value = user's id.
-
-	
-	static user_counts; //TODO ya static so that when i re-run the program i can assign the count from where it lefted!! // but this is not the correct and robust way
-	// how should this be done??? 
-	
-	constructor(username,password, firstname,lastname){
-	    this.#id =  User.user_counts;
-	    this.firstname = firstname;
-	    	this.lastname = lastname;
-	    this.username = username;
-	    this.password = #hash_password(password); 
-	    this.#contacts_map = new Map();
-	    this.#groups_map = new Map();       //TODO: Do I WILL NEed to provide the map the type of class it will store?? like Group , Contact etc or not? 
-	    User.user_counts+=1;
-	}
-	function #hash_password(password){
-	        // TODO hashing logic 
-	    return password; 
-	}
-	function getId(){
-	    return this.#id;
-	}
-	function getPassword(){
-	    return this.#password;
-	}
-	function getContacts(){
-	    return this.#contacts_map;
-	}
-	function getGroups(){
-	    return this.#groups_map;
-	}
-	function getGroupById(firstname){
-	    return this.#groups_map[firstname]; // return grp having key(name) and value grp_id.
-	}
-	function getContactById(firstname){ // return list of people mathing the search instead of single !!! 
-	    return this.#contact_map[firstname]; // return grp having key(name) and value grp_id.
-	}
-		// TODO: IMP** use fuzzy search and display implement it on search and  return the list of people instead of just one
-	function addContact(firstname,id){
-	    this.#contact_map.set({firstname:id});
-	}
-	function addGroup(firstname,id){
-	    this.#groups_map.set({firstname:id}); // name here should be first name!!
-	}
-
-	
-	    
-	
-}
-
-const wss = new WebSocketServer({ port: 8080 });
-
-const arr = [];
-
-var indx = 1;
+******OLD LOGIC***** changed date 25 oct 2026 
 wss.on('connection', function connection(ws) {
 
   ws.on('error', console.error);
@@ -112,7 +113,7 @@ wss.on('connection', function connection(ws) {
   });
 
 });
- 
+ */
 
 /*
 ws.send(data);
