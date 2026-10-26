@@ -5,7 +5,7 @@
 
 var flag = 0;
 var sessionid=0;
-
+// TODO: IMP*** Create websocket connection when user in the home page in website!! and in home page we use singlepage app with multiScrean
 const ws = new WebSocket('ws://localhost:8080/core'); 
 
     ws.addEventListener('error', console.error);

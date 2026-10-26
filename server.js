@@ -5,18 +5,83 @@ import { User } from './user.js';
 
 const app = express();
 enableWs(app);
-
+app.use(express.json()); // for parsing application/json
 
 const arr = [];
 var indx = 1;
+
+/*
+    GLOBAL DATABASE_MAPS:
+        User_obj_DataBase_MAP: 
+        Group_obj_DataBase_MAP: 
+        userName_Password_id_DataBase_Map: 
+        GroupMessageDataBase_Map:
+        PrivateMessageDataBase_Map:
+*/
+
+const User_obj_DataBase_MAP = new Map();
+const userName_Password_id_DataBase_Map = new Map();
 
 /*app.ws('/groupmessage', (ws, req) => {
 // for group chat
 });
 */
-app.ws('/core', (ws, req) => {
-    
 
+/*
+    DOCS: Creat user route.
+    requestBody: json data containing firstname, lastname, username, password.
+    responseBody: will send json data containing user object dto TODO: make UserDTO class. for now using whole obj.
+*/
+app
+  .route('/user')
+  .post((req, res) => {
+    console.log(req.body);
+    const user = new User(req.firstname,req.lastname, req.username, req.password); // TODO: Valdiate input first!!
+    User_obj_DataBase_MAP.set({user.getId():user});
+    const pass_id_obj = {
+        "password" : user.getPassword(),
+        "id" : user.getId()
+    }
+    userName_Password_id_DataBase_Map.set({user.username: pass_id_obj});
+    console.log(user);
+    res.send("now login to continue");
+  })
+  .put((req, res) => {
+    res.send('Update the User');
+  })
+  .delete((req, res) => {
+    res.send('deleted the user data from our database we care your privacy and data.');
+});
+app.get('/login:username/password:password', (req, res) => {
+    console.log(`username: ${username}, password: ${password} `);
+    const pass_id_obj = JSON.parse(userName_Password_id_DataBase_Map[username]); // TODO: validate here that even username exists or not!!! if not exists in map 
+                                                                                        // then what is inside the pass_id_obj ?? undefined or null or what??
+    console.log(pass_id_obj);
+    if(password==pass_id_obj.password){
+        const user = User_obj_DataBase_MAP[pass_id_obj.id];
+        res.json(user);
+    }else{
+    res.send("Password or username is not correct");
+    }
+    
+    //TODO get the userNameAndPassowrdJoinMap Global db_map and check and return user obj by using user id from this map in user_global_db_map.
+            // and generate tokens and send to client with expiration and refresh token! BY SELF.
+});
+app.post('/logout:token', (req, res) => {
+    console.log(`token: ${token} is now exprired by server on demand so loged out!`);
+    //TODO validate token and exprire it then delete entry and open for new token generation when login
+    // right now handling it in client side.
+});
+
+    // TODO whenever the connection is closed remove the entry from arr too. 
+    // TODO: IMP*** Can we use reference means instead of storing the ws object in arr we can just refrenece it in address of ws pooling?? 
+    // TODO: IMP***** Use a middleware to verify accessToken in every request in every or any route.
+
+// IMPORTANT DECISION: The Websocket will stay open and client will connect when logged-in.
+const id_indx_map = new Map();
+app.ws('/privatemessage:id', (ws, req) => {
+    console.log(`got request user id: ${id}`);
+    
   ws.on('error', console.error);
 
   ws.on('message', function message(data) {
@@ -27,8 +92,17 @@ app.ws('/core', (ws, req) => {
 
         if('req' in obj){
             // so first req for id 
+            // now return the list of messages if any pending! how i know pending? 
+            // how i know this msgs not recived yet to user and this get recieved?
+            // so mark the word "this" this means a session means if for this session(logged-in) we sent all messages to user or not!
+            // if for this sessiion we sent all once then now for later reconnections don't send again the all messages instead send only thus
+            // which are not recieved in this session as user was offline but he/she doest did logout yet! so we send all messages only once per login!
+            // but now how we separate sent on this session and not sent on this session?? 
+            // yaaa so we need another array for storing messages that did't recived on this session
+            // this will be a temporary storage means once user is online the data is resent and poped from here and appended into the CONTACT_MESSAGE_MAP!!
+            // Note: if user is online msg is pushed into contact_msg_map else in the TEMP_contact_msg_map !!!.. ***Great design Jeet*** data: 26 oct, time: 15:03 pm.
             arr[indx] = ws;
-            
+            id_indx_map.set({id: indx});
             const client = arr[indx];
 
 
@@ -43,22 +117,29 @@ app.ws('/core', (ws, req) => {
 
             indx = indx+1;
         }else{
-            const sender_id = obj.sender_id;  
-            const reciever_id = obj.reciever_id;
+            const sender_id = obj.sender_id;  // Now sender id is user object id!! NOT the indx.
+            const reciever_id = id;             // **DO we need this id's evertime?? Do we have to make a connection everytime click on a contact? 
+                                                        // OR do we need the connection per app?? means whenever the app is in used?? 
             const msg = obj.messages;
             
             const resp = {
                 "sender_id": sender_id,
                 "msg": msg
             }
-            const reciever = arr[reciever_id];
+            const index = id_indx_map[sender_id];
+            console.log(index);
+            // TODO: Check here that index exists or not! if exists then store at contacts_msg_map else if not exists then store in temp_contacts_msg_map.
+            const reciever = arr[index];
             reciever.send(JSON.stringify(resp));
             
             console.log("sent msg-----"); 
         }    
   });
-    ws.on('close', () => {
-        console.log('WebSocket was closed')
+    ws.on('close', () => { // Can we send user id here?? so that we can remove the entries from maps and array!! OR DOES app.ws get executed first every time??
+                                    // if so then no worries!! let's check by debugging
+                                    
+        console.log(`WebSocket was closed userid: ${id}`); // if this works then use id and remove the map entry first then from array mark arr[indx] = null,
+                                                        //TODO: we WILL do lazy Deltion here! as a maintainace work, but till that maintainace time just use marking.
     })
 })
 

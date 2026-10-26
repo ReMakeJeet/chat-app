@@ -116,7 +116,7 @@ class Group{
 }
 class PrivateMessage{
 	id, 
-	senderid,
+	PrivateMessageDataBase_Mapsenderid,
 	recieverid,
 	date,
 	msg,
@@ -130,6 +130,7 @@ class GroupMessage{
 ++ Both will have global Database_map: 	GroupMessageDataBase_Map key = group_msg_id and value= group_message_obj {++ or use value object! havving more data in value of map}ateMessageDat
 					PrivateMessageDataBase_Map key = private_msg_id, private_msg_object .
 ++ Group_obj_DataBase_MAP key= grp_id value= grp_object, User_obj_DataBase_MAP: key = user_id and value = user_object
+++ Another map for login: userName_Password_id_DataBase_Map key= username value= obj , obj = {password, id}; once mathecdd tehn use the id to get user obj. this is also:= GLOBAL LEVEL DATABASE_MAP 
 
 ___________________**OHH MY GOODNESS it's 16:16 pm 23 Oct 2026 i done the DataBases of private chats, grp chats, and groups objects, user objects__________________________
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
