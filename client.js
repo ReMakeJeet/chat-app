@@ -1,4 +1,4 @@
-import {user} from './landing_page_handle.js';
+import  {user} from './landing_page_handler.js';
 console.log("finnally home page");
 console.log(user);
 // TODO: IMP*** Create websocket connection when user in the home page in website!! and in home page we use singlepage app with multiScrean
@@ -17,7 +17,7 @@ const wsPrivateMessage = new WebSocket(`ws://localhost:8080/privatemessage/clien
         const data = {
             "first_private" : 1
         }
-        ws.send(JSON.stringify(data);
+        ws.send(JSON.stringify(data));
     });
 
     wsPrivateMessage.addEventListener('message', async (event) => {
@@ -50,7 +50,7 @@ function send_private_msg() {
     }
   }
   
-    const private_msg_btn = document.querySelector("private_msg_btn");
+    const private_msg_btn = document.getElementById("private_msg_btn");
     const ack_for_private_msg = document.getElementById("ack_for_private_msg");
     const response_of_private_msg = document.getElementById("response_of_private_msg");
     private_msg_btn.addEventListener("click", send_private_msg);
@@ -127,12 +127,12 @@ async function add_member() {
 
     }
   
-    const group_msg_btn = document.querySelector("group_msg_btn");
+    const group_msg_btn = document.getElementById("group_msg_btn");
     const ack_for_group_msg = document.getElementById("ack_for_group_msg");
     const response_of_group_msg = document.getElementById("response_of_group_msg");
     group_msg_btn.addEventListener("click", send_group_msg);
     
-    const add_member_btn = document.querySelector("add_member_btn");
+    const add_member_btn = document.getElementById("add_member_btn");
     const response_of_add_members = document.getElementById("response_of_add_members");
     add_member_btn.addEventListener("click", add_member);
     
@@ -141,7 +141,7 @@ async function add_member() {
 // now make funtion CreateGroup, call a post fetch req.
 
     
-function get_members(grpid){
+async function get_members(grpid){
     if(!user){
      console.log("login first");
             window.document.location.href = "./index.html";
@@ -165,7 +165,7 @@ function get_members(grpid){
 }
     
 
-function create_group() {
+async function create_group() {
         const groupname = prompt("Enter groupname "); //TODO: Check that  if you are a memeber of the grp only then allow to send msgs.
         const lastname = prompt("Enter lastname ");
         const reqData = {
@@ -179,7 +179,7 @@ function create_group() {
             const res = await fetch(url,
                 {
                     method:"POST",  
-                    body: JSON.stringify(reqData);
+                    body: JSON.stringify(reqData),
                 });
             if (res.status!=200) {
                 throw new Error(`Response status: ${res.status}`);
@@ -197,7 +197,7 @@ function create_group() {
     
 
 
-const create_group_btn = document.querySelector("create_grp_btn");
+const create_group_btn = document.getElementById("create_grp_btn");
 const response_of_create_grp = document.getElementById("response_of_create_grp");
 
 

@@ -13,10 +13,10 @@ class User{
 	#groups_map;  // a map storing key = grp_name and value as grp_id samea for contacts_map key = user's name, and value = user's id.
 
 	
-	static user_counts; //TODO ya static so that when i re-run the program i can assign the count from where it lefted!! // but this is not the correct and robust way
+	static user_counts=1; //TODO ya static so that when i re-run the program i can assign the count from where it lefted!! // but this is not the correct and robust way
 	// how should this be done??? 
 	
-	constructor(username,password, firstname,lastname){
+	constructor(firstname,lastname,username,password, ){
 	    this.#id =  User.user_counts;
 	    this.firstname = firstname;
 	    	this.lastname = lastname;

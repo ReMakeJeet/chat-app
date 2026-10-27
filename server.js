@@ -3,10 +3,18 @@ import  express  from 'express';
 import  enableWs  from 'express-ws';
 import { User } from './user.js';
 import { Group } from './Group.js';
+import cors from 'cors';
 const app = express();
 enableWs(app);
-app.use(express.json()); // for parsing application/json
+  app.use(express.json());
 
+
+const corsOptions = {
+    origin: '*', // Allow only requests from this origin
+    methods: '*', // Allow only these methods
+    allowedHeaders: ['Content-Type', 'Authorization'] // Allow only these headers
+};
+app.use(cors(corsOptions));
 const arr = [];
 var indx = 1;
 
@@ -32,48 +40,14 @@ const Group_obj_DataBase_MAP = new Map();
     requestBody: json data containing firstname, lastname, username, password.
     responseBody: will send json data containing user object dto TODO: make UserDTO class. for now using whole obj.
 */
-app
-  .route('/user')
-  .post((req, res) => {
-    console.log(req.body);
-    const user = new User(req.firstname,req.lastname, req.username, req.password); // TODO: Valdiate input first!!
-    User_obj_DataBase_MAP.set({user.getId():user});
-    const pass_id_obj = {
-        "password" : user.getPassword(),
-        "id" : user.getId()
-    }
-    userName_Password_id_DataBase_Map.set({user.username: pass_id_obj});
-    console.log(user);
-    res.status(200).send('Now Login to continue.');
-  })
-  .put((req, res) => {
-    res.send('Update the User');
-  })
-  .delete((req, res) => {
-    res.send('deleted the user data from our database we care your privacy and data.');
-});
-app
-  .route('/group')
-  .post((req, res) => {
-    console.log(req.body);
-    const group = new Group(req.name); // TODO: Valdiate input first!!
-    Group_obj_DataBase_MAP.set({group.getId():group});
-   
-
-    console.log(group);
-   res.status(200).send("You can chat in group now, and can add new members and alter the settings of the group");
-  })
-  .put((req, res) => {
-    res.send('Update the Group');
-  })
-  .delete((req, res) => {
-    res.send('deleted the Group data from our database we care your privacy and data.');
+app.get('/about', (req, res) => {
+  res.send('about');
 });
 app.get('/group:grpid/user:userid', (req,res) => {
     console.log(req.params.grpid);
     const group = Group_obj_DataBase_MAP[req.params.grpid];
     // members is a arr of user id's
-    for(const id: group.members){
+    for(const id in group.members){
         if(id==userid){
             res.status(200).send(members);
         }
@@ -88,14 +62,19 @@ app.get('/group:grpid/member:memberid', (req,res) => {
       res.status(200).send("cool");
 
 });
+app.get('/hello:name', (req,res) => {
+    console.log(req.params.name);
+    res.send('ok');
 
-app.get('/login:username/password:password', (req, res) => {
-    console.log(`username: ${req.params.username}, password: ${req.params.password} `);
-    const pass_id_obj = JSON.parse(userName_Password_id_DataBase_Map[req.params.username]); // TODO: validate here that even username exists or not!!! if not exists in map 
+});
+app.post("/login", (req, res) => {
+    console.log(`username: ${req.body.username}, password: ${req.body.password} `);
+    const pass_id_obj = userName_Password_id_DataBase_Map.get(req.body.username); // TODO: validate here that even username exists or not!!! if not exists in map 
                                                                                         // then what is inside the pass_id_obj ?? undefined or null or what??
     console.log(pass_id_obj);
-    if(req.params.password==pass_id_obj.password){
-        const user = User_obj_DataBase_MAP[pass_id_obj.id];
+    if(req.body.password===pass_id_obj.password){
+        const user = User_obj_DataBase_MAP.get(pass_id_obj.id);
+        console.log("math");
         res.status(200).json(user);
     }else{
         res.status(400).send("Password or username is not correct");
@@ -109,6 +88,51 @@ app.post('/logout:token', (req, res) => {
     //TODO validate token and exprire it then delete entry and open for new token generation when login
     // right now handling it in client side.
     res.status(200).send("done");
+});
+
+app
+  .route('/user')
+  .post((req, res) => {
+    console.log(req.body);
+
+    const user = new User(req.body.firstname,req.body.lastname,req.body.username, req.body.password); // TODO: Valdiate input first!!
+    const id = user.getId();
+    User_obj_DataBase_MAP.set(id,user);
+        console.log(User_obj_DataBase_MAP);
+    const pass_id_obj = {
+        "password" : user.getPassword(),
+        "id" : user.getId()
+    }
+    const username = user.username;
+    console.log(username);
+    userName_Password_id_DataBase_Map.set(username,pass_id_obj);
+    console.log(userName_Password_id_DataBase_Map);
+    console.log(user);
+    res.status(200).send('Now Login to continue.');
+  })
+  .put((req, res) => {
+    res.send('Update the User');
+  })
+  .delete((req, res) => {
+    res.send('deleted the user data from our database we care your privacy and data.');
+});
+app
+  .route('/group')
+  .post((req, res) => {
+    console.log(req.body);
+    const group = new Group(req.name); // TODO: Valdiate input first!!
+    const grpid = group.getId();
+    Group_obj_DataBase_MAP.set(grpid,group);
+   
+
+    console.log(group);
+   res.status(200).send("You can chat in group now, and can add new members and alter the settings of the group");
+  })
+  .put((req, res) => {
+    res.send('Update the Group');
+  })
+  .delete((req, res) => {
+    res.send('deleted the Group data from our database we care your privacy and data.');
 });
 
     // TODO whenever the connection is closed remove the entry from arr too. 
@@ -140,7 +164,7 @@ app.ws('/privatemessage:id', (ws, req) => {
             // this will be a temporary storage means once user is online the data is resent and poped from here and appended into the CONTACT_MESSAGE_MAP!!
             // Note: if user is online msg is pushed into contact_msg_map else in the TEMP_contact_msg_map !!!.. ***Great design Jeet*** data: 26 oct, time: 15:03 pm.
             arr[indx] = ws;
-            private_id_indx_map.set({id: indx});
+            private_id_indx_map.set(id, indx);
             const client = arr[indx];
 
 
@@ -204,7 +228,7 @@ app.ws('/groupmessage:id', (ws, req) => {
             // this will be a temporary storage means once user is online the data is resent and poped from here and appended into the CONTACT_MESSAGE_MAP!!
             // Note: if user is online msg is pushed into contact_msg_map else in the TEMP_contact_msg_map !!!.. ***Great design Jeet*** data: 26 oct, time: 15:03 pm.
             grp_arr[grp_indx] = ws;
-            grp_id_indx_map.set({id: grp_indx});
+            grp_id_indx_map.set(id, grp_indx);
             const client = grp_arr[grp_indx];
 
 
@@ -239,7 +263,7 @@ app.ws('/groupmessage:id', (ws, req) => {
                 "msg": msg
             }
 
-            for(const reciever_id: members){
+            for(const reciever_id in members){
                  const index = group_id_indx_map[reciever_id];
                 console.log(index);
                 // TODO: Check here that index exists or not! if exists then store at contacts_msg_map else if not exists then store in temp_contacts_msg_map.
