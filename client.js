@@ -82,7 +82,7 @@ const wsGroupMessage = new WebSocket("ws://localhost:8080/groupmessage");
         if('first_group_msg' in obj){
             response_of_group_msg.innerHTML = `(Group)FIRST Data recieved msg: ${obj.first_group_msg}`; 
         }else{
-        response_of_group_msg.innerHTML = `(Group)Data recieved: from: ${obj.username} with msg: ${obj.messages}`; 
+        response_of_group_msg.innerHTML = `(Group)Data recieved: from: ${obj.sender_username} with msg: ${obj.msg}`; 
         }
     });
 
@@ -98,7 +98,8 @@ async function send_group_msg() {
         // TODO: Chceck that this group exists then check that user is in this group or don't! 
             // and get all all members of the group 
         const members = await get_members(groupid);// i should cache this!! or what? i think we have to design it properly!! IMP**.
-        
+                console.log("members :");
+        console.log(members);
         const d = { //TODO: create the original message object instead of this.
             "sender_username": user.username,
             "groupid":groupid, 
@@ -117,15 +118,25 @@ async function add_member() {
     }
         const grpid = prompt("Enter grp id to add member on ");  // right now anyone can add members, then  later check the role.
         const member_username = prompt("enter member username "); // later use public identity like username!!(mobile no can too)
-       
-         const url = `http://localhost:8080/group/${grpid}/member/${member_username}`;
+       const data = {
+       "grpid": grpid,
+       "username":member_username,
+       }
+         const url = `http://localhost:8080/groups/addmembers`;
         try {
-            const res = await fetch(url);
+            const res = await fetch(url,
+            {
+                  headers: {
+                        "Content-Type": "application/json",
+                      },
+                    method:"POST",  
+                    body: JSON.stringify(data),
+            });
             if (res.status!=200) {
                 throw new Error(`Response status: ${res.status}`);
             }
             
-            const result = await res.json();
+            const result = await res.text();
             console.log(result);
            
             response_of_add_members.innerHTML = `(Group) Member added! ${result}`;
@@ -158,9 +169,20 @@ async function get_members(grpid){
             window.document.location.href = "./index.html";
     }
  //fetch
-         const url = `http://localhost:8080/group/${grpid}/user/${user.username}`;
+        const data = {
+            "grpid":grpid,
+            "username": user.username
+        }
+         const url = `http://localhost:8080/getmembers`;
         try {
-            const res = await fetch(url);
+            const res = await fetch(url,
+            {   
+                     headers: {
+                        "Content-Type": "application/json",
+                      },
+                    method:"POST",  
+                    body: JSON.stringify(data),
+            });
             if (res.status!=200) {
                 throw new Error(`Response status: ${res.status}`);
             }
@@ -178,10 +200,10 @@ async function get_members(grpid){
 
 async function create_group() {
         const groupname = prompt("Enter groupname "); //TODO: Check that  if you are a memeber of the grp only then allow to send msgs.
-        const lastname = prompt("Enter lastname ");
+
         const reqData = {
-            "groupname":groupname,
-            "lastname":lastname
+            "groupname":groupname
+
             //TODO: Add all the neccesury data like discription, members to be added and can anyone add anyone or admin-only.
         }
         //fetch
@@ -189,6 +211,9 @@ async function create_group() {
         try {
             const res = await fetch(url,
                 {
+                 headers: {
+                        "Content-Type": "application/json",
+                      },
                     method:"POST",  
                     body: JSON.stringify(reqData),
                 });
@@ -196,10 +221,10 @@ async function create_group() {
                 throw new Error(`Response status: ${res.status}`);
             }
             
-            const result = await res.json();
+            const result = await res.text();
             console.log(result);
            
-            response_of_create_grp.innerHTML = `Group Created Successfully group id: ${result.id}`;
+            response_of_create_grp.innerHTML = `Group Created Successfully  ${result}`;
       } catch (error) {
         console.error(error.message);
       }
@@ -210,7 +235,7 @@ async function create_group() {
 
 const create_group_btn = document.getElementById("create_grp_btn");
 const response_of_create_grp = document.getElementById("response_of_create_grp");
-
+create_group_btn.addEventListener("click", create_group);
 
 
 

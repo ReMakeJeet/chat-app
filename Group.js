@@ -8,21 +8,23 @@ class Group{
 	members;
 	//TODO: complete the class by adding attributes and methods for all neccesury funtionality.
     static group_count = 1;
-    members_count =1;
+    members_count =0;
     
 	constructor(name){
 	 this.name=name;
-	 this.#id = group_count;
+	 this.#id = Group.group_count;
+	 this.members_count =0;
 	 this.members = [];// TODO: if initial members are given then add them. and try to use a dynamic arr (ADD atleast the user who created group at least and give role)
-	 group_count = group_count+1;
+	 Group.group_count+=1;
+
 	}
 	
 	getId(){
 	    return this.#id;
 	}
 	addMember(memberid){
-	    this.members[members_count] = memberid;
-	    members_count+=1;
+	    this.members[this.members_count] = Number(memberid);
+	    this.members_count+=1;
 	}
 	// TODO: ADD list of members !
 	

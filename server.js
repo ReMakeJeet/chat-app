@@ -27,9 +27,10 @@ app.use(cors(corsOptions));
 */
 
 const User_obj_DataBase_MAP = new Map();
+const Group_obj_DataBase_MAP = new Map();
 const userName_Password_id_DataBase_Map = new Map();
 const userName_Id_DataBase_Map = new Map();
-const Group_obj_DataBase_MAP = new Map();
+
 /*app.ws('/groupmessage', (ws, req) => {
 // for group chat
 });
@@ -43,23 +44,35 @@ const Group_obj_DataBase_MAP = new Map();
 app.get('/about', (req, res) => {
   res.send('about');
 });
-app.get('/group:grpid/user:username', (req,res) => {
-    console.log(req.params.grpid);
-    const group = Group_obj_DataBase_MAP[req.params.grpid];
+app.post('/getmembers', (req,res) => {
+    console.log(req.body.grpid);
+    console.log(`db : ${Group_obj_DataBase_MAP}`);
+    const group = Group_obj_DataBase_MAP.get(Number(req.body.grpid));
+        console.log(`grp: ${group}`);
     // members is a arr of user id's
-    const id = userName_Id_DataBase_Map.get(username);
-    for(const id in group.members){
-        if(id==userid){
-            res.status(200).send(members);
+            console.log("memners" );
+                    console.log(group.members);
+    const userid = userName_Id_DataBase_Map.get(req.body.username);
+    const members = group.members;
+    for (let i = 0; i < members.length; i++){
+    console.log(members[i]);
+        if(members[i]===userid){
+            console.log("sendt 1");
+            return res.status(200).json(members);
         }
     }
-    res.status(404).send("you are not in this group, so can't send msg here");
+    console.log("sendt");
+    return res.status(404).send("you are not in this group, so can't send msg here");
 });
-app.get('/group:grpid/member:username', (req,res) => {
-    console.log(req.params.grpid);//TODO: VALIDATE THAT THIS USER WHO IS SENDING REQ have admin role to add members into grp or the group is open to add members
-    const group = Group_obj_DataBase_MAP[req.params.grpid];
+app.post('/groups/addmembers', (req,res) => {
+    console.log(req.body.grpid);//TODO: VALIDATE THAT THIS USER WHO IS SENDING REQ have admin role to add members into grp or the group is open to add members
+    const grpid = Number(req.body.grpid);
+    console.log(grpid);
+    const group = Group_obj_DataBase_MAP.get(grpid);
+    console.log(Group_obj_DataBase_MAP);
+    console.log(`grp: ${group}`);
     // members is a arr of user id's
-    const memberid = userName_Id_DataBase_Map.get(req.params.username);
+    const memberid = userName_Id_DataBase_Map.get(req.body.username);
       group.addMember(memberid);
       res.status(200).send("cool");
 
@@ -124,10 +137,11 @@ app
   .route('/group')
   .post((req, res) => {
     console.log(req.body);
-    const group = new Group(req.name); // TODO: Valdiate input first!!
+    const group = new Group(req.body.groupname); // TODO: Valdiate input first!!
     const grpid = group.getId();
+    console.log(`gprid : ${grpid}`);
     Group_obj_DataBase_MAP.set(grpid,group);
-   
+   console.log(Group_obj_DataBase_MAP);
 
     console.log(group);
    res.status(200).send("You can chat in group now, and can add new members and alter the settings of the group");
@@ -236,7 +250,7 @@ app.ws('/groupmessage', (ws, req) => {
 
             console.log(obj);
         if('first_group' in obj){
-                console.log(`got request user id: ${obj.username}`);
+                console.log(`got request user username: ${obj.username}`);
                                             const userid =userName_Id_DataBase_Map.get(obj.username);
             // so first req for id 
             // now return the list of messages if any pending! how i know pending? 
@@ -284,9 +298,9 @@ app.ws('/groupmessage', (ws, req) => {
                 "sender_username": sender_username, //TODO: **IMP send first name lastname etc too like a full user profile data
                 "msg": msg
             }
-
-            for(const reciever_id in members){
-                 const index = group_id_indx_map.get(reciever_id);
+            
+            for(let i = 0; i < members.length; i++){
+                 const index = grp_id_indx_map.get(members[i]);
                 console.log(index);
                 // TODO: Check here that index exists or not! if exists then store at contacts_msg_map else if not exists then store in temp_contacts_msg_map.
                 const reciever = grp_arr[index];
