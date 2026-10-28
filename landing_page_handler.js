@@ -1,5 +1,5 @@
 
- var user ={};
+
 // use fetch api to call server api's
 async function create_account() {
         const firstname = prompt("Enter firstname ");
@@ -27,8 +27,8 @@ async function create_account() {
             if (res.status!=200) {
                 throw new Error(`Response status: ${res.status} Response Message: ${res.message}`);
             }
-           
-          response_of_create_account.innerHTML = `Account created successfully, msg: ${res.message}`;
+           const msg = await res.text();
+          response_of_create_account.innerHTML = `Account created successfully, msg: ${msg}`;
       } catch (error) {
         console.error(error.message);
         resp_of_error.innerHTML = `error: ${error.message}`;
@@ -65,13 +65,13 @@ async function login() {
           
             const result = await res.json();
             console.log(result);
-            user = result;
+            const user = result;
             console.log(user);
             response_of_login.innerHTML = `Log in Successfull user id: ${user.id}`;
             // now redirect to home page!! 
-            console.log(window.document.location);
+            localStorage.setItem("user", JSON.stringify(user));
             window.document.location.href = "/home.html"
-            console.log(window.document.location);
+
       } catch (error) {
         console.error(error.message);
         resp_of_error.innerHTML = `error: ${error.message}`;
@@ -90,4 +90,4 @@ const resp_of_error = document.getElementById("error");
 
 login_btn.addEventListener("click", login);
 create_account_btn.addEventListener("click", create_account);
-export {user as user};
+

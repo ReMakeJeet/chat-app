@@ -1,11 +1,11 @@
-import  {user} from './landing_page_handler.js';
+const user = JSON.parse(localStorage.getItem("user"));
 console.log("finnally home page");
 console.log(user);
 // TODO: IMP*** Create websocket connection when user in the home page in website!! and in home page we use singlepage app with multiScrean
 /*
     DOCS: PrivateMessage websocket 
 */
-const wsPrivateMessage = new WebSocket(`ws://localhost:8080/privatemessage/clientid/${user.id}`); 
+const wsPrivateMessage = new WebSocket("ws://localhost:8080/privatemessage"); 
     
     wsPrivateMessage.addEventListener('error', console.error);
 
@@ -15,9 +15,10 @@ const wsPrivateMessage = new WebSocket(`ws://localhost:8080/privatemessage/clien
                 // show loading messages at website, DON'T LET user do anything till this gets done. SO IT'S SYNCHRONOUS
         console.log("ok sending first message to let server perform pre-socket work");
         const data = {
-            "first_private" : 1
+            "first_private" : 1,
+            "username" : user.username // get id at server side!!
         }
-        ws.send(JSON.stringify(data));
+        wsPrivateMessage.send(JSON.stringify(data));
     });
 
     wsPrivateMessage.addEventListener('message', async (event) => {
@@ -28,7 +29,7 @@ const wsPrivateMessage = new WebSocket(`ws://localhost:8080/privatemessage/clien
             response_of_private_msg.innerHTML = `(Private)FIRST Data recieved msg: ${obj.first_private_msg}`; 
         }
         else{
-            response_of_private_msg.innerHTML = `(Private)Data recieved: from: ${obj.sender_id} with msg: ${obj.msg}`; 
+            response_of_private_msg.innerHTML = `(Private)Data recieved: from: ${obj.sender_username} with msg: ${obj.msg}`; 
         }
     });
 
@@ -39,14 +40,14 @@ function send_private_msg() {
         window.document.location.href = "./index.html";
     }else{
         const msg = prompt("Enter msg ");
-        const recieverid = prompt("enter reciver id ");
+        const reciever_username = prompt("enter reciver username ");
         const d = { //TODO: create the original message object instead of this.
-            "sender_id": sessionid,
-            "reciever_id":recieverid, 
+            "sender_username": user.username,
+            "reciever_username":reciever_username, 
             "messages": msg
         }
         wsPrivateMessage.send(JSON.stringify(d));
-        ack_for_private_msg.innerHTML = `(Private)Msg sent: ${msg} to ${recieverid}`;
+        ack_for_private_msg.innerHTML = `(Private)Msg sent: ${msg} to ${reciever_username}`;
     }
   }
   
@@ -58,13 +59,19 @@ function send_private_msg() {
 /*
     DOCS: GroupMessage websocket 
 */
-const wsGroupMessage = new WebSocket(`ws://localhost:8080/groupmessage/clientid/${id}`); 
+const wsGroupMessage = new WebSocket("ws://localhost:8080/groupmessage"); 
 
     wsGroupMessage.addEventListener('error', console.error);
 
     wsGroupMessage.addEventListener('open', function open() {
         // yaa so we dont need a first msg! as long as we send id in url.
         console.log("ok sending first message Wait no needed here!!");
+        // well it needs!
+          const data = {
+            "first_group" : 1,
+            "username" : user.username
+        }
+        wsGroupMessage.send(JSON.stringify(data));
        
     });
 
@@ -72,7 +79,11 @@ const wsGroupMessage = new WebSocket(`ws://localhost:8080/groupmessage/clientid/
         var data = await event.data;
         console.log(JSON.stringify(data));
         const obj = JSON.parse(data); //TODO: the data is now containing the PrivateMessage object, so to work correctly with that first create that Class.
-        response_of_group_msg.innerHTML = `(Group)Data recieved: from: ${obj.sender_id} with msg: ${obj.messages}`; 
+        if('first_group_msg' in obj){
+            response_of_group_msg.innerHTML = `(Group)FIRST Data recieved msg: ${obj.first_group_msg}`; 
+        }else{
+        response_of_group_msg.innerHTML = `(Group)Data recieved: from: ${obj.username} with msg: ${obj.messages}`; 
+        }
     });
 
 async function send_group_msg() {
@@ -82,20 +93,20 @@ async function send_group_msg() {
         window.document.location.href = "./index.html";
     }else{
         const msg = prompt("Enter msg ");
-        const groupid = prompt("enter group id ");
+        const groupid = prompt("enter group id ");//TODO:IMP** use grp_username here also instead of group id, later on!!
         
         // TODO: Chceck that this group exists then check that user is in this group or don't! 
             // and get all all members of the group 
         const members = await get_members(groupid);// i should cache this!! or what? i think we have to design it properly!! IMP**.
         
         const d = { //TODO: create the original message object instead of this.
-            "sender_id": sessionid,
+            "sender_username": user.username,
             "groupid":groupid, 
             "members": members,
             "messages": msg
         }
         wsGroupMessage.send(JSON.stringify(d));
-        ack_for_group_msg.innerHTML = `(Group)Msg sent: ${msg} to ${recieverid}`;
+        ack_for_group_msg.innerHTML = `(Group)Msg sent: ${msg} to ${groupid}`;
     }
   }
 async function add_member() {
@@ -105,9 +116,9 @@ async function add_member() {
         window.document.location.href = "./index.html";
     }
         const grpid = prompt("Enter grp id to add member on ");  // right now anyone can add members, then  later check the role.
-        const memberid = prompt("enter member id "); // later use public identity like username!!(mobile no can too)
+        const member_username = prompt("enter member username "); // later use public identity like username!!(mobile no can too)
        
-         const url = `http://localhost:8080/group/${grpid}/member/${memberid}`;
+         const url = `http://localhost:8080/group/${grpid}/member/${member_username}`;
         try {
             const res = await fetch(url);
             if (res.status!=200) {
@@ -147,7 +158,7 @@ async function get_members(grpid){
             window.document.location.href = "./index.html";
     }
  //fetch
-         const url = `http://localhost:8080/group/${grpid}/user/${user.id}`;
+         const url = `http://localhost:8080/group/${grpid}/user/${user.username}`;
         try {
             const res = await fetch(url);
             if (res.status!=200) {

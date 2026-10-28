@@ -10,13 +10,12 @@ enableWs(app);
 
 
 const corsOptions = {
-    origin: '*', // Allow only requests from this origin
+    origin: '*',
     methods: '*', // Allow only these methods
     allowedHeaders: ['Content-Type', 'Authorization'] // Allow only these headers
 };
 app.use(cors(corsOptions));
-const arr = [];
-var indx = 1;
+
 
 /*
     GLOBAL DATABASE_MAPS:
@@ -29,6 +28,7 @@ var indx = 1;
 
 const User_obj_DataBase_MAP = new Map();
 const userName_Password_id_DataBase_Map = new Map();
+const userName_Id_DataBase_Map = new Map();
 const Group_obj_DataBase_MAP = new Map();
 /*app.ws('/groupmessage', (ws, req) => {
 // for group chat
@@ -43,10 +43,11 @@ const Group_obj_DataBase_MAP = new Map();
 app.get('/about', (req, res) => {
   res.send('about');
 });
-app.get('/group:grpid/user:userid', (req,res) => {
+app.get('/group:grpid/user:username', (req,res) => {
     console.log(req.params.grpid);
     const group = Group_obj_DataBase_MAP[req.params.grpid];
     // members is a arr of user id's
+    const id = userName_Id_DataBase_Map.get(username);
     for(const id in group.members){
         if(id==userid){
             res.status(200).send(members);
@@ -54,10 +55,11 @@ app.get('/group:grpid/user:userid', (req,res) => {
     }
     res.status(404).send("you are not in this group, so can't send msg here");
 });
-app.get('/group:grpid/member:memberid', (req,res) => {
+app.get('/group:grpid/member:username', (req,res) => {
     console.log(req.params.grpid);//TODO: VALIDATE THAT THIS USER WHO IS SENDING REQ have admin role to add members into grp or the group is open to add members
     const group = Group_obj_DataBase_MAP[req.params.grpid];
     // members is a arr of user id's
+    const memberid = userName_Id_DataBase_Map.get(req.params.username);
       group.addMember(memberid);
       res.status(200).send("cool");
 
@@ -106,6 +108,8 @@ app
     const username = user.username;
     console.log(username);
     userName_Password_id_DataBase_Map.set(username,pass_id_obj);
+        userName_Id_DataBase_Map.set(username,id);
+            console.log(userName_Id_DataBase_Map);
     console.log(userName_Password_id_DataBase_Map);
     console.log(user);
     res.status(200).send('Now Login to continue.');
@@ -141,18 +145,24 @@ app
 
 // IMPORTANT DECISION: The Websocket will stay open and client will connect when logged-in.
 const private_id_indx_map = new Map();
-app.ws('/privatemessage:id', (ws, req) => {
-    console.log(`got request user id: ${id}`);
+const private_arr = [];
+var private_indx = 1;
+app.ws('/privatemessage', (ws, req) => {
+
     
   ws.on('error', console.error);
 
   ws.on('message', function message(data) {
-    
+
     //console.log('received: %s', JSON.stringify(data));
     // lets send to the desired reciver now not broadcasting! hmm yaa gotch you
     const obj = JSON.parse(data);
 
+        console.log(obj);
         if('first_private' in obj){
+                console.log(`got request user id: ${obj.username}`);
+                            const userid =userName_Id_DataBase_Map.get(obj.username);
+                            console.log(userid);
             // so first req for id 
             // now return the list of messages if any pending! how i know pending? 
             // how i know this msgs not recived yet to user and this get recieved?
@@ -163,9 +173,12 @@ app.ws('/privatemessage:id', (ws, req) => {
             // yaaa so we need another array for storing messages that did't recived on this session
             // this will be a temporary storage means once user is online the data is resent and poped from here and appended into the CONTACT_MESSAGE_MAP!!
             // Note: if user is online msg is pushed into contact_msg_map else in the TEMP_contact_msg_map !!!.. ***Great design Jeet*** data: 26 oct, time: 15:03 pm.
-            arr[indx] = ws;
-            private_id_indx_map.set(id, indx);
-            const client = arr[indx];
+            
+            private_arr[private_indx] = ws;
+
+            private_id_indx_map.set(userid, private_indx);
+            console.log(private_id_indx_map);
+            const client = private_arr[private_indx];
 
 
             const ms = "hello client gotch you can do private chat now";
@@ -176,22 +189,25 @@ app.ws('/privatemessage:id', (ws, req) => {
 
             client.send(JSON.stringify(resp));
 
-            indx = indx+1;
+            private_indx = private_indx+1;
         }else{
-            const sender_id = obj.sender_id;  // Now sender id is user object id!! NOT the indx.
-            const reciever_id = id;             // **DO we need this id's evertime?? Do we have to make a connection everytime click on a contact? 
-                                                        // OR do we need the connection per app?? means whenever the app is in used?? 
+            const sender_username = obj.sender_username;  // Now sender id is user object id!! NOT the indx.
+            const sender_id =userName_Id_DataBase_Map.get(sender_username);
+            const reciever_username= obj.reciever_username;             // **DO we need this id's evertime?? Do we have to make a connection everytime click on a contact? 
+            const reciever_id = userName_Id_DataBase_Map.get(reciever_username);
+                        console.log(`reciever_id: ${reciever_id}`);
+                        // OR do we need the connection per app?? means whenever the app is in used?? 
             const msg = obj.messages;
             
             const resp = {
-                "sender_id": sender_id,
+                "sender_username": sender_username,
                 "msg": msg
             }
-            const index = private_id_indx_map[sender_id];
-            console.log(index);
+            const index = private_id_indx_map.get(reciever_id);
+            console.log(`index ${index}`);
             // TODO: Check here that index exists or not! if exists then store at contacts_msg_map else if not exists then store in temp_contacts_msg_map.
-            const reciever = arr[index];
-            reciever.send(JSON.stringify(resp));
+            const reciever_ws = private_arr[index];
+            reciever_ws.send(JSON.stringify(resp));
             
             console.log("sent msg-----"); 
         }    
@@ -199,15 +215,16 @@ app.ws('/privatemessage:id', (ws, req) => {
     ws.on('close', () => { // Can we send user id here?? so that we can remove the entries from maps and array!! OR DOES app.ws get executed first every time??
                                     // if so then no worries!! let's check by debugging
                                     
-        console.log(`WebSocket was closed userid: ${id}`); // if this works then use id and remove the map entry first then from array mark arr[indx] = null,
+        console.log(`WebSocket was closed userid: `); // if this works then use id and remove the map entry first then from array mark arr[indx] = null,
                                                         //TODO: we WILL do lazy Deltion here! as a maintainace work, but till that maintainace time just use marking.
     })
 })
 
 const grp_arr = [];
+var grp_indx=1;
 const grp_id_indx_map = new Map();
-app.ws('/groupmessage:id', (ws, req) => {
-    console.log(`got request user id: ${id}`);
+app.ws('/groupmessage', (ws, req) => {
+
     
   ws.on('error', console.error);
 
@@ -216,7 +233,11 @@ app.ws('/groupmessage:id', (ws, req) => {
     //console.log('received: %s', JSON.stringify(data));
     // lets send to the desired reciver now not broadcasting! hmm yaa gotch you
     const obj = JSON.parse(data);
+
+            console.log(obj);
         if('first_group' in obj){
+                console.log(`got request user id: ${obj.username}`);
+                                            const userid =userName_Id_DataBase_Map.get(obj.username);
             // so first req for id 
             // now return the list of messages if any pending! how i know pending? 
             // how i know this msgs not recived yet to user and this get recieved?
@@ -228,7 +249,7 @@ app.ws('/groupmessage:id', (ws, req) => {
             // this will be a temporary storage means once user is online the data is resent and poped from here and appended into the CONTACT_MESSAGE_MAP!!
             // Note: if user is online msg is pushed into contact_msg_map else in the TEMP_contact_msg_map !!!.. ***Great design Jeet*** data: 26 oct, time: 15:03 pm.
             grp_arr[grp_indx] = ws;
-            grp_id_indx_map.set(id, grp_indx);
+            grp_id_indx_map.set(userid, grp_indx);
             const client = grp_arr[grp_indx];
 
 
@@ -248,8 +269,9 @@ app.ws('/groupmessage:id', (ws, req) => {
             // if offline: then store at temp_group_message_map at user class
             // in first req to group socket send all grp messages to client if it's Need_all_once=true.
             
-            const sender_id = obj.sender_id;  // Now sender id is user object id!! NOT the indx.
-            const group_id = obj.groupid;             // **DO we need this id's evertime?? Do we have to make a connection everytime click on a contact? 
+            const sender_username = obj.sender_username;  // Now sender id is user object id!! NOT the indx.
+            const sender_id =userName_Id_DataBase_Map.get(sender_username);
+            const group_id = obj.group_id;             // **DO we need this id's evertime?? Do we have to make a connection everytime click on a contact? 
                                                         // OR do we need the connection per app?? means whenever the app is in used?? 
             // **IMP fetching all members of the group or should i send this in the message itself? as this will make it faster!!
             /******IMPORTANT Design decision****** 
@@ -259,12 +281,12 @@ app.ws('/groupmessage:id', (ws, req) => {
             const msg = obj.messages;
             
             const resp = {
-                "sender_id": sender_id,
+                "sender_username": sender_username, //TODO: **IMP send first name lastname etc too like a full user profile data
                 "msg": msg
             }
 
             for(const reciever_id in members){
-                 const index = group_id_indx_map[reciever_id];
+                 const index = group_id_indx_map.get(reciever_id);
                 console.log(index);
                 // TODO: Check here that index exists or not! if exists then store at contacts_msg_map else if not exists then store in temp_contacts_msg_map.
                 const reciever = grp_arr[index];
@@ -276,8 +298,9 @@ app.ws('/groupmessage:id', (ws, req) => {
   });
     ws.on('close', () => { // Can we send user id here?? so that we can remove the entries from maps and array!! OR DOES app.ws get executed first every time??
                                     // if so then no worries!! let's check by debugging
-                                    
-        console.log(`WebSocket was closed userid: ${id}`); // if this works then use id and remove the map entry first then from array mark arr[indx] = null,
+                                    // instead of removing at here we will do **LAZY DELETION here, so check if the client is alive and that clinet is not alive remove
+                                        // its entry
+        console.log(`WebSocket was closed userid: `); // if this works then use id and remove the map entry first then from array mark arr[indx] = null,
                                                         //TODO: we WILL do lazy Deltion here! as a maintainace work, but till that maintainace time just use marking.
     })
 })
