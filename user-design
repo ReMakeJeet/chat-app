@@ -157,7 +157,42 @@ class GroupVoiceCall{
 	++ now when user opens a contact the app will send a reques to global  data base with contact id
 		and server will proccess the related chat ids: it will fetch that chat(msg)  
 	++ note: this map stores the both side msgs so it becomes chat, means sent by this user and that contact user all goes in here
-
+	-- BUT this should be independent of user, so i will make another class Named: Chat, this class will have an attribute called id
+		++ which will be on both side users means in the conact_map of user class, so 
+	IMP** change in User class!! contact_map key = id of conact user value = chatid , for searching i will impl another map key = name, and value =id! 
 	
+___________________________________________________________________________________________________________________________________________________________________________
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// TO solve the problem of storing msgs in both side of user class. now just store the chat id, it gives more funtionality and can introduce new features
+class PrivateChat{
+	id,
+	arr_of_msg_ids,
+	array_of_pinned_msgs_id,
+	theme, // bool for now blacka nd white //TODO: later make it object and give different properties and animations to the chat
+	locked,// bool telling us that this chat should be in the locked chat pannel and without giving password this chat will not unlocked!
+		//TODO: DESIGN challange can we introduce a feature to impl diff password on diff chat!
+	//TODO: BUG-check!!!!!!!! Is there a way to get the msgs wihtout going to chat at all!! means is our data is open? 
+		// does it needs sequantial follow-up to access or someone can access the data without following the rules or seq?? by breaking the chain and directly 
+		// accessing the data {PROCESS cutter}
+		
+	msg_to_be_recieved_arr, // arr of msg id's 
+	// TODO: how can i imple fuzzy search in whole chat msgs?? this should be at client side? like in the user device?? YESS!!
+}
+// Similar for GroupChat
+class GroupChat{
+	id,
+	arr_of_grp_msg_ids,
+	array_of_pinned_grp_msgs_id,
+	theme, //TODO: role based access and only higher level of roles can update the theme etc of the grp_chat
+	
+}
+________________ Again Jeet Solanki did awsome work Date: Oct 30 time: 15: 40, "Chat classes introduced"___________________________________________________________________
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+// impl locked chats feature 
+++ Locked_chat_map_database: key = chat_id, value = password for this locked chat.
+-+ NoDumbQ: MEANS Password is not stored in chat class: YES!! 
+-WHY??? Good q why the ans to this why is the second why, why not?
+
 	
 +++++ ** IMP its better to say msgs instead of chat!!
